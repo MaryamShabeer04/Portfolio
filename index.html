@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maryam Shabeer — Web Designer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- CURSOR -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-follower" id="cursor-follower"></div>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <a href="#home" class="logo">MS<span class="logo-dot">.</span></a>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="menu">
+      <span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="#work" class="mobile-link">Work</a></li>
+      <li><a href="#about" class="mobile-link">About</a></li>
+      <li><a href="#services" class="mobile-link">Services</a></li>
+      <li><a href="#contact" class="mobile-link">Contact</a></li>
+    </ul>
+  </div>
+
+  <!-- HERO -->
+  <section id="home" class="hero">
+    <div class="hero-bg-text" aria-hidden="true">DESIGN</div>
+    <div class="hero-inner">
+      <div class="hero-top">
+        <span class="hero-tag">Available for work · Hyderabad, India</span>
+        <div class="hero-stats">
+          <div class="hero-stat"><span class="stat-n">4+</span><span class="stat-l">Live Projects</span></div>
+          <div class="hero-stat"><span class="stat-n">SG</span><span class="stat-l">Intl. Clients</span></div>
+        </div>
+      </div>
+      <h1 class="hero-title">
+        <span class="line">Web</span>
+        <span class="line italic">Designer</span>
+        <span class="line">who builds.</span>
+      </h1>
+      <div class="hero-bottom">
+        <p class="hero-desc">I design and build websites for real businesses — healthcare clinics, SaaS platforms, luxury brands. Clean, intentional, made to work.</p>
+        <div class="hero-actions">
+          <a href="#work" class="btn-primary">View Work</a>
+          <a href="#contact" class="btn-outline">Hire Me</a>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-section">
+    <div class="marquee-track">
+      <div class="marquee-inner" id="marquee">
+        <span>WordPress</span><span class="sep">✦</span>
+        <span>HTML &amp; CSS</span><span class="sep">✦</span>
+        <span>JavaScript</span><span class="sep">✦</span>
+        <span>Shopify</span><span class="sep">✦</span>
+        <span>Elementor</span><span class="sep">✦</span>
+        <span>Web Design</span><span class="sep">✦</span>
+        <span>UI Design</span><span class="sep">✦</span>
+        <span>Responsive Layouts</span><span class="sep">✦</span>
+        <span>WordPress</span><span class="sep">✦</span>
+        <span>HTML &amp; CSS</span><span class="sep">✦</span>
+        <span>JavaScript</span><span class="sep">✦</span>
+        <span>Shopify</span><span class="sep">✦</span>
+        <span>Elementor</span><span class="sep">✦</span>
+        <span>Web Design</span><span class="sep">✦</span>
+        <span>UI Design</span><span class="sep">✦</span>
+        <span>Responsive Layouts</span><span class="sep">✦</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORK -->
+  <section id="work" class="work">
+    <div class="section-header">
+      <span class="section-label">Selected Work</span>
+      <h2 class="section-title">Projects I've<br>designed &amp; built</h2>
+    </div>
+
+    <div class="projects-list">
+
+      <a href="https://slicerkanvas.netlify.app/" target="_blank" class="project-row" data-num="01">
+        <div class="pr-left">
+          <h3 class="pr-title">Slicer Kanvas</h3>
+          <p class="pr-type">B2B SaaS · Fashion Intelligence</p>
+        </div>
+        <p class="pr-desc">Full marketing site for a Singapore fashion tech platform used by Charles &amp; Keith, Raymond, Havaianas. Dashboard mockups, animated carousels, complex layout.</p>
+        <div class="pr-tags">
+          <span>HTML/CSS/JS</span>
+          <span>SaaS</span>
+          <span>Netlify</span>
+        </div>
+        <span class="pr-arrow">↗</span>
+      </a>
+
+      <a href="https://therapycollective.sg/" target="_blank" class="project-row" data-num="02">
+        <div class="pr-left">
+          <h3 class="pr-title">Therapy Collective</h3>
+          <p class="pr-type">Healthcare · Mental Health</p>
+        </div>
+        <p class="pr-desc">Warm, trust-focused multi-page site for a Singapore therapy practice. Covers individual, couples, family, and group therapy services.</p>
+        <div class="pr-tags">
+          <span>WordPress</span>
+          <span>Elementor</span>
+          <span>Healthcare</span>
+        </div>
+        <span class="pr-arrow">↗</span>
+      </a>
+
+      <a href="https://giuliac29.sg-host.com/" target="_blank" class="project-row" data-num="03">
+        <div class="pr-left">
+          <h3 class="pr-title">Advanced Pain Centres</h3>
+          <p class="pr-type">Medical · Multi-location Clinic</p>
+        </div>
+        <p class="pr-desc">Multi-location chiropractic clinic with two separate booking flows. Strong conversion focus across six therapy service pages.</p>
+        <div class="pr-tags">
+          <span>WordPress</span>
+          <span>Multi-location</span>
+          <span>Booking</span>
+        </div>
+        <span class="pr-arrow">↗</span>
+      </a>
+
+      <a href="https://atelierglm.com/" target="_blank" class="project-row" data-num="04">
+        <div class="pr-left">
+          <h3 class="pr-title">Atelier GLM</h3>
+          <p class="pr-type">Luxury Fashion · E-commerce</p>
+        </div>
+        <p class="pr-desc">Refined brand and e-commerce presence for a luxury fashion atelier. Editorial photography integration with premium shopping experience.</p>
+        <div class="pr-tags">
+          <span>Shopify</span>
+          <span>Luxury</span>
+          <span>E-commerce</span>
+        </div>
+        <span class="pr-arrow">↗</span>
+      </a>
+
+      <a href="https://www.rossellarossi.net/" target="_blank" class="project-row" data-num="05">
+        <div class="pr-left">
+          <h3 class="pr-title">Rossella Rossi</h3>
+          <p class="pr-type">Fine Art · Artist Portfolio</p>
+        </div>
+        <p class="pr-desc">Gallery-style portfolio site for an Italian painter working between Italy and France. Showcases painting series, exhibition history, and biography with a refined, editorial aesthetic.</p>
+        <div class="pr-tags">
+          <span>Squarespace</span>
+          <span>Fine Art</span>
+          <span>Portfolio</span>
+        </div>
+        <span class="pr-arrow">↗</span>
+      </a>
+
+      <a href="https://celestia.infinityfreeapp.com/index.php" target="_blank" class="project-row project-row--personal" data-num="06">
+        <div class="pr-left">
+          <h3 class="pr-title">Celestia</h3>
+          <p class="pr-type">Final Year Project · Jewellery E-commerce</p>
+        </div>
+        <p class="pr-desc">My first full e-commerce build — a complete jewellery store with product listings, categories, featured collections, and promotional banners. Products stored and managed via a MySQL database. Built independently as my BCA final year project.</p>
+        <div class="pr-tags">
+          <span>PHP</span>
+          <span>MySQL</span>
+          <span>HTML/CSS</span>
+          <span>First Build</span>
+        </div>
+        <span class="pr-arrow">↗</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="about">
+    <div class="about-grid">
+      <div class="about-left">
+        <span class="section-label">About Me</span>
+        <h2 class="section-title">Designer with a<br><em>builder's</em> mindset</h2>
+        <div class="about-img-block">
+          <img src="2.jpg" alt="Maryam Shabeer" class="about-img">
+          <div class="about-img-badge">Based in<br>Hyderabad 🇮🇳</div>
+        </div>
+      </div>
+      <div class="about-right">
+        <p>I'm Maryam, a web designer who builds things. I studied BCA and spent my internship at Girls Who Web — a boutique agency in Singapore — designing and delivering real websites for real clients.</p>
+        <p>I care about designing websites that actually fit the business behind them. A mental health clinic should feel different from a luxury atelier. I think about that difference.</p>
+        <p>I'm currently open to junior web designer or frontend roles, and freelance projects internationally.</p>
+        <div class="skills-list">
+          <div class="skill-item"><span class="skill-icon">⬡</span><span>WordPress &amp; Elementor</span></div>
+          <div class="skill-item"><span class="skill-icon">⬡</span><span>HTML, CSS, JavaScript</span></div>
+          <div class="skill-item"><span class="skill-icon">⬡</span><span>Shopify Store Design</span></div>
+          <div class="skill-item"><span class="skill-icon">⬡</span><span>Responsive Web Design</span></div>
+          <div class="skill-item"><span class="skill-icon">⬡</span><span>UI Layout &amp; Visual Design</span></div>
+          <div class="skill-item"><span class="skill-icon">⬡</span><span>Figma (Learning)</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="services">
+    <div class="section-header">
+      <span class="section-label">What I Offer</span>
+      <h2 class="section-title">How I can help</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-card">
+        <span class="service-num">01</span>
+        <h3>Website Design &amp; Build</h3>
+        <p>Full website design and development for small businesses and startups — from homepage to contact page, on all devices.</p>
+      </div>
+      <div class="service-card">
+        <span class="service-num">02</span>
+        <h3>WordPress Development</h3>
+        <p>Custom WordPress sites using Elementor and hand-crafted CSS. Setup, design, content structure, and plugin integrations.</p>
+      </div>
+      <div class="service-card">
+        <span class="service-num">03</span>
+        <h3>Shopify Store Design</h3>
+        <p>Shopify setup and visual customisation for e-commerce brands. Theme alignment and shopping experience that converts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="contact">
+    <div class="contact-inner">
+      <span class="section-label">Get In Touch</span>
+      <h2 class="contact-title">Let's work<br><em>together.</em></h2>
+      <p class="contact-sub">Open to full-time roles and freelance projects. If you have something in mind, I'd love to hear from you.</p>
+      <a href="mailto:maryamshabeer22@gmail.com" class="contact-email">maryamshabeer22@gmail.com</a>
+      <div class="contact-socials">
+        <a href="https://github.com/MaryamShabeer04" target="_blank" class="social-btn">GitHub</a>
+        <a href="https://www.linkedin.com/in/maryam-mohammed-822a45361/" target="_blank" class="social-btn">LinkedIn</a>
+        <a href="https://www.instagram.com/mmaryamm.04/" target="_blank" class="social-btn">Instagram</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Maryam Shabeer</span>
+    <span>Web Designer · Hyderabad, India</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
