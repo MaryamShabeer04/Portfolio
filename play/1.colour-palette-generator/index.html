@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Palette Generator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Palette Generator</h1>
+    <p>Press <kbd>Space</kbd> or tap Generate. Click a hex to copy. Lock the ones you love.</p>
+  </header>
+
+  <main id="palette" aria-live="polite"></main>
+
+  <footer>
+    <button id="generate">Generate</button>
+    <button id="export" class="ghost">Copy CSS</button>
+  </footer>
+
+  <div id="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
