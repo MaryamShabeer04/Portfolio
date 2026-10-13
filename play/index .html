@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutesy Projects</title>
+<meta name="description" content="A collection of small web experiments: buttons, clocks, games and glowing tiles. Pick one and play.">
+<meta name="theme-color" content="#0e0b0d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* Design system taken from the portfolio: wine, cream and near-black; Playfair Display with Syne; hairline rules; light, dark and wine sections; marquee; ring cursor.
+   New here: an interactive tile board in the hero, art that follows the pointer over each project row, and a tiles view. */
+:root {
+  --dark: #0e0b0d;
+  --dark2: #160d10;
+  --surface: #1c1117;
+  --wine: #8b1a35;
+  --wine-light: #c4425f;
+  --cream: #faf7f2;
+  --cream2: #f0e8e2;
+  --ink: #1a1814;
+  --ink-muted: #6b6760;
+  --text-dark: #f0e8e4;
+  --border-light: rgba(26, 24, 20, 0.1);
+  --border-dark: rgba(240, 232, 228, 0.1);
+  --muted-dark: rgba(240, 232, 228, 0.45);
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans: 'Syne', system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--cream);
+  color: var(--ink);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--wine-light); outline-offset: 3px; }
+
+/* Ring cursor, desktop mouse only */
+@media (hover: hover) and (pointer: fine) {
+  body, a, button { cursor: none; }
+}
+.cursor, .cursor-follower { position: fixed; top: 0; left: 0; pointer-events: none; border-radius: 50%; opacity: 0; transition: opacity .3s; }
+.cursor { width: 8px; height: 8px; background: var(--wine-light); z-index: 9999; margin: -4px 0 0 -4px; }
+.cursor-follower { width: 32px; height: 32px; border: 1px solid var(--wine-light); z-index: 9998; margin: -16px 0 0 -16px; transition: opacity .3s, width .25s, height .25s, margin .25s, background .25s; }
+.cursor-follower.big { width: 56px; height: 56px; margin: -28px 0 0 -28px; background: rgba(196, 66, 95, .12); }
+.has-mouse .cursor { opacity: 1; }
+.has-mouse .cursor-follower { opacity: .5; }
+
+/* Navbar */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem 5%;
+  background: rgba(14, 11, 13, .9);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  transition: padding .3s;
+}
+.navbar.scrolled { padding: 1rem 5%; background: rgba(14, 11, 13, .75); }
+.logo { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: var(--cream); }
+.logo span { color: var(--wine-light); }
+.nav-links { display: flex; gap: 1.75rem; }
+.nav-links a { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-dark); transition: color .25s; }
+.nav-links a:hover { color: var(--text-dark); }
+
+/* Hero (light) */
+.hero { position: relative; overflow: hidden; background: var(--cream); padding: 9rem 5% 5rem; }
+.hero-inner { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.05fr .95fr; gap: 3.5rem; align-items: center; }
+.hero-copy { min-width: 0; }
+.hero-bg-text {
+  position: absolute; bottom: -2rem; right: -2rem;
+  font-family: var(--serif); font-size: clamp(8rem, 20vw, 18rem); font-weight: 700; line-height: 1;
+  color: rgba(139, 26, 53, .05); pointer-events: none; user-select: none;
+}
+.hero-tag { display: inline-flex; align-items: center; gap: .6rem; font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 1.6rem; }
+.hero-tag::before { content: ''; width: 7px; height: 7px; background: var(--wine); border-radius: 50%; }
+.hero-title { font-family: var(--serif); font-size: clamp(2.8rem, 7vw, 5.6rem); font-weight: 700; line-height: 1.02; letter-spacing: -.01em; text-wrap: balance; }
+.hero-title .line { display: block; }
+.hero-title .italic { font-style: italic; font-weight: 400; color: var(--wine); }
+.hero-sub { max-width: 46ch; margin-top: 1.6rem; color: var(--ink-muted); font-size: 1rem; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: .9rem; margin-top: 2.2rem; }
+.btn-primary, .btn-outline {
+  display: inline-block; padding: .9rem 2rem; font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+}
+.btn-primary { background: var(--ink); color: var(--cream); border: 1px solid var(--ink); transition: background .25s, border-color .25s; }
+.btn-primary:hover { background: var(--wine); border-color: var(--wine); }
+.btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--border-light); transition: border-color .25s, color .25s; }
+.btn-outline:hover { border-color: var(--wine); color: var(--wine); }
+.hero-stats { display: flex; flex-wrap: wrap; gap: 1.5rem 0; margin-top: 3rem; }
+.hero-stat { padding-right: 2.5rem; margin-right: 2.5rem; border-right: .5px solid var(--border-light); }
+.hero-stat:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+.stat-n { font-family: var(--serif); font-size: 2.4rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat-l { margin-top: .4rem; font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-muted); }
+
+.board { position: relative; aspect-ratio: 5 / 4; max-width: 100%; background: var(--cream2); border: .5px solid var(--border-light); }
+.board canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
+.board-cap { position: absolute; left: 14px; bottom: 12px; font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-muted); pointer-events: none; transition: opacity 1s; }
+.board-cap.gone { opacity: 0; }
+
+/* Marquee (wine) */
+.marquee-section { overflow: hidden; padding: 1rem 0; background: var(--wine); }
+.marquee-inner { display: flex; gap: 2rem; width: max-content; animation: marquee 28s linear infinite; }
+.marquee-inner span { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(245, 237, 232, .75); white-space: nowrap; }
+.marquee-inner .sep { color: rgba(245, 237, 232, .4); font-size: .55rem; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* Collection (dark) */
+.dark-section { background: var(--dark); color: var(--text-dark); padding: 6rem 5%; }
+.wrap { max-width: 1200px; margin: 0 auto; }
+.label { display: flex; align-items: center; gap: .75rem; font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; color: var(--wine-light); }
+.label::before { content: ''; width: 28px; height: 1px; background: currentColor; }
+.section-title-dark { margin: 1rem 0 2.5rem; font-family: var(--serif); font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 700; line-height: 1.1; text-wrap: balance; }
+.section-title-dark em { font-style: italic; font-weight: 400; color: var(--wine-light); }
+.controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; }
+.chips, .views { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip {
+  background: transparent; color: var(--muted-dark);
+  border: .5px solid var(--border-dark); padding: .5rem .9rem;
+  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+  transition: color .25s, border-color .25s, background .25s;
+}
+.chip:hover { color: var(--text-dark); border-color: rgba(240, 232, 228, .3); }
+.chip[aria-pressed="true"] { background: var(--wine); border-color: var(--wine); color: var(--cream); }
+.right-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem; }
+.count { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-dark); font-variant-numeric: tabular-nums; }
+
+.list { border-top: .5px solid var(--border-dark); }
+.row { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto 40px; gap: 2rem; align-items: center; padding: 2rem 0; border-bottom: .5px solid var(--border-dark); transition: background .3s; }
+.row:hover { background: rgba(139, 26, 53, .05); }
+.r-num { font-family: var(--serif); font-size: 3.2rem; font-weight: 700; line-height: 1; color: transparent; -webkit-text-stroke: 1px var(--muted-dark); font-variant-numeric: tabular-nums; transition: color .3s, -webkit-text-stroke-color .3s; }
+.row:hover .r-num { color: var(--wine-light); -webkit-text-stroke-color: var(--wine-light); }
+.r-title { display: block; font-family: var(--serif); font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 700; line-height: 1.1; transition: color .3s; }
+.row:hover .r-title { color: var(--wine-light); }
+.r-desc { display: block; margin-top: .4rem; color: var(--muted-dark); font-size: .9rem; }
+.badge { display: inline-block; vertical-align: middle; margin-left: .6rem; padding: .15rem .55rem; background: var(--wine); color: var(--cream); font-family: var(--sans); font-size: .6rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.r-tag { border: .5px solid var(--border-dark); padding: .3rem .65rem; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-dark); }
+.r-arrow { justify-self: end; font-size: 1.4rem; color: var(--muted-dark); transition: transform .3s, color .3s; }
+.row:hover .r-arrow { color: var(--wine-light); transform: translate(4px, -4px); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1px; background: var(--border-dark); border: .5px solid var(--border-dark); }
+.tile { display: flex; flex-direction: column; min-width: 0; background: var(--dark); transition: background .3s; }
+.tile:hover { background: var(--surface); }
+.t-art { overflow: hidden; background: var(--dark2); border-bottom: .5px solid var(--border-dark); }
+.t-art svg { display: block; width: 100%; height: auto; transition: transform .6s ease; }
+.tile:hover .t-art svg { transform: scale(1.06); }
+.t-info { display: flex; flex-direction: column; gap: .35rem; padding: 1.4rem 1.5rem 1.6rem; }
+.t-meta { font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted-dark); }
+.t-title { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; line-height: 1.15; transition: color .3s; }
+.tile:hover .t-title { color: var(--wine-light); }
+.t-desc { color: var(--muted-dark); font-size: .88rem; }
+.empty { padding: 3rem 0; color: var(--muted-dark); }
+
+.peek {
+  position: fixed; top: 0; left: 0; z-index: 60; width: 300px; pointer-events: none;
+  background: var(--dark2); border: .5px solid rgba(240, 232, 228, .2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+  opacity: 0; transition: opacity .25s;
+}
+.peek.show { opacity: 1; }
+.peek svg { display: block; width: 100%; height: auto; }
+
+/* Contact (wine) */
+.contact { background: var(--wine); color: var(--cream); text-align: center; padding: 8rem 5% 4rem; }
+.contact-title { font-family: var(--serif); font-size: clamp(2.4rem, 7vw, 5rem); font-weight: 700; line-height: 1.05; text-wrap: balance; }
+.contact-title em { font-style: italic; font-weight: 400; }
+.contact p { max-width: 46ch; margin: 1.2rem auto 2.4rem; color: rgba(250, 247, 242, .75); }
+.socials { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; }
+.social-btn { padding: .65rem 1.5rem; border: .5px solid rgba(245, 237, 232, .25); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(250, 247, 242, .8); transition: color .25s, border-color .25s; }
+.social-btn:hover { color: var(--cream); border-color: rgba(245, 237, 232, .6); }
+.contact footer { margin-top: 5rem; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(250, 247, 242, .5); }
+
+html.js .fade-up { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+html.js .fade-up.visible { opacity: 1; transform: none; }
+
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+  .board { aspect-ratio: 4 / 3; }
+}
+@media (max-width: 1024px) {
+  .row { grid-template-columns: 90px minmax(0, 1fr) auto; }
+  .r-arrow { display: none; }
+}
+@media (max-width: 768px) {
+  .hero { padding-top: 7.5rem; }
+  .hero-stat { padding-right: 1.5rem; margin-right: 1.5rem; }
+  .row { grid-template-columns: 56px minmax(0, 1fr); gap: 1.2rem; padding: 1.5rem 0; }
+  .r-num { font-size: 2.2rem; }
+  .r-tag { display: none; }
+  .nav-links a:first-child { display: none; }
+  .dark-section { padding: 4.5rem 5%; }
+  .contact { padding-top: 5.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-inner { animation: none; }
+  html.js .fade-up { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+</style>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-follower" id="follower"></div>
+
+<nav class="navbar" id="nav">
+  <a class="logo" href="https://maryamshabeer04.github.io/Portfolio/" aria-label="Back to portfolio">MS<span>.</span></a>
+  <div class="nav-links">
+    <a href="#projects">Projects</a>
+    <a href="https://maryamshabeer04.github.io/Portfolio/" target="_blank" rel="noopener">Portfolio &#8599;</a>
+    <a href="https://github.com/MaryamShabeer04" target="_blank" rel="noopener">GitHub &#8599;</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-bg-text" aria-hidden="true">PLAY</div>
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <div class="hero-tag">A small lab of web experiments</div>
+      <h1 class="hero-title">
+        <span class="line">Little web things,</span>
+        <span class="line italic">made to play.</span>
+      </h1>
+      <p class="hero-sub">Buttons, clocks, games and glowing tiles. Each one is a small experiment in HTML, CSS and JavaScript. Pick one and try it.</p>
+      <div class="hero-cta">
+        <a class="btn-primary" href="#projects">Browse projects</a>
+        <a class="btn-outline" href="https://maryamshabeer04.github.io/Portfolio/" target="_blank" rel="noopener">Back to portfolio</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="stat-n" id="statProjects">0</div><div class="stat-l">Projects</div></div>
+        <div class="hero-stat"><div class="stat-n" id="statCats">0</div><div class="stat-l">Categories</div></div>
+      </div>
+    </div>
+    <div class="board" id="boardWrap">
+      <canvas id="board" aria-label="A grid of tiles that light up as you move your pointer or finger across them."></canvas>
+      <div class="board-cap" id="boardCap">Move across the tiles</div>
+    </div>
+  </div>
+</header>
+
+<section class="marquee-section" aria-hidden="true">
+  <div class="marquee-inner" id="marquee"></div>
+</section>
+
+<section class="dark-section" id="projects">
+  <div class="wrap">
+    <div class="fade-up">
+      <div class="label">The collection</div>
+      <h2 class="section-title-dark">Every experiment, <em>newest first.</em></h2>
+    </div>
+    <div class="controls fade-up">
+      <div class="chips" id="chips" role="group" aria-label="Filter projects"></div>
+      <div class="right-controls">
+        <div class="count" id="count" aria-live="polite"></div>
+        <div class="views" id="views" role="group" aria-label="Change view">
+          <button class="chip" type="button" data-view="list" aria-pressed="true">List</button>
+          <button class="chip" type="button" data-view="tiles" aria-pressed="false">Tiles</button>
+        </div>
+      </div>
+    </div>
+    <div class="fade-up" id="listWrap"><div id="list"></div></div>
+    <noscript><p class="empty">Turn on JavaScript to see the projects.</p></noscript>
+  </div>
+</section>
+
+<section class="contact">
+  <h2 class="contact-title fade-up">More is <em>on the way.</em></h2>
+  <p class="fade-up">New experiments get added here as I finish them. Want to see the rest of my work?</p>
+  <div class="socials fade-up">
+    <a class="social-btn" href="https://maryamshabeer04.github.io/Portfolio/" target="_blank" rel="noopener">Portfolio &#8599;</a>
+    <a class="social-btn" href="https://github.com/MaryamShabeer04" target="_blank" rel="noopener">GitHub &#8599;</a>
+    <a class="social-btn" href="https://www.linkedin.com/in/maryam-mohammed-822a45361/" target="_blank" rel="noopener">LinkedIn &#8599;</a>
+    <a class="social-btn" href="https://www.instagram.com/mmaryamm.04/" target="_blank" rel="noopener">Instagram &#8599;</a>
+    <a class="social-btn" href="mailto:maryamshabeer22@gmail.com">Email</a>
+  </div>
+  <footer>&copy; 2026 Maryam Shabeer &middot; Web Developer &middot; Hyderabad, India</footer>
+</section>
+
+<div class="peek" id="peek" aria-hidden="true"></div>
+
+<script>
+/*
+  TO ADD A PROJECT: copy one line in PROJECTS, change the number, title, description,
+  tag and folder name, and put it at the top (newest first).
+  - href is the project's folder. Each folder needs an index.html inside it.
+  - Use lowercase folder names with dashes, no spaces.
+  - tag: any word. A filter is made for each tag automatically.
+*/
+var PROJECTS = [
+  { n: 17, title: 'Calm Hoverboard', desc: 'Glowing tiles that fade slowly, with music as you move.', tag: 'Art', href: 'hoverboard/' },
+  { n: 16, title: 'Portfolio', desc: 'My portfolio site: work, about and contact.', tag: 'Sites', href: 'https://maryamshabeer04.github.io/Portfolio/' },
+  { n: 15, title: 'Quiz App', desc: 'Answer questions and see your score.', tag: 'Games', href: 'quiz-app/' },
+  { n: 14, title: 'Car Game', desc: 'A small car game.', tag: 'Games', href: 'car-game/' },
+  { n: 13, title: 'Analog Clock', desc: 'A clock with moving hands.', tag: 'Tools', href: 'analog-clock/' },
+  { n: 12, title: 'Shopping Page', desc: 'A product listing page.', tag: 'Sites', href: 'shopping-page/' },
+  { n: 11, title: 'To Do List', desc: 'Add tasks and tick them off.', tag: 'Tools', href: 'to-do-list/' },
+  { n: 10, title: 'Glow Button', desc: 'A button that glows.', tag: 'UI', href: 'glow-button/' },
+  { n: 1, title: 'Colour Changing Button', desc: 'A button that changes colour.', tag: 'UI', href: 'colour-changing-button/' }
+];
+
+(function () {
+  var root = document.documentElement;
+  root.classList.add('js');
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function $(id) { return document.getElementById(id); }
+
+  /* ---------- Marquee ---------- */
+  var tools = ['HTML', 'CSS', 'JavaScript', 'Canvas', 'WebGL', 'Web Audio', 'PWA'];
+  var group = '';
+  for (var rep = 0; rep < 4; rep++) tools.forEach(function (t) { group += '<span>' + t + '</span><span class="sep">&#10022;</span>'; });
+  $('marquee').innerHTML = group + group;
+
+  /* ---------- Navbar ---------- */
+  var nav = $('nav');
+  function onScroll() { nav.classList.toggle('scrolled', window.scrollY > 40); }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  /* ---------- Art: a mosaic of squares, unique per project ---------- */
+  function rng(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function art(n) {
+    var r = rng(n * 7919 + 13), s = 36, g = 5, out = '';
+    for (var row = 0; row < 5; row++) {
+      for (var col = 0; col < 8; col++) {
+        var v = r(), fill;
+        if (v < 0.34) fill = 'rgba(240,232,228,0.07)';
+        else if (v < 0.6) fill = '#8b1a35';
+        else if (v < 0.82) fill = '#c4425f';
+        else fill = '#faf7f2';
+        out += '<rect x="' + (4 + col * (s + g)) + '" y="' + (4 + row * (s + g)) + '" width="' + s + '" height="' + s + '" rx="2" fill="' + fill + '"/>';
+      }
+    }
+    return '<svg viewBox="0 0 331 208" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + out + '</svg>';
+  }
+
+  /* ---------- Collection ---------- */
+  var listEl = $('list'), chipsEl = $('chips'), countEl = $('count'), viewsEl = $('views');
+  var current = 'All';
+  var view = window.matchMedia('(max-width: 768px)').matches ? 'tiles' : 'list';
+  var latest = Math.max.apply(null, PROJECTS.map(function (p) { return p.n; }));
+  var tags = ['All'];
+  PROJECTS.forEach(function (p) { if (tags.indexOf(p.tag) < 0) tags.push(p.tag); });
+  $('statProjects').textContent = PROJECTS.length;
+  $('statCats').textContent = tags.length - 1;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function rowHtml(p) {
+    return '<a class="row" data-n="' + p.n + '" href="' + esc(p.href) + '">' +
+      '<span class="r-num">' + p.n + '</span>' +
+      '<span class="r-main"><span class="r-title">' + esc(p.title) + (p.n === latest ? '<span class="badge">Latest</span>' : '') + '</span><span class="r-desc">' + esc(p.desc) + '</span></span>' +
+      '<span class="r-tag">' + esc(p.tag) + '</span>' +
+      '<span class="r-arrow" aria-hidden="true">&#8599;</span></a>';
+  }
+  function tileHtml(p) {
+    return '<a class="tile" href="' + esc(p.href) + '">' +
+      '<div class="t-art">' + art(p.n) + '</div>' +
+      '<div class="t-info"><span class="t-meta">No. ' + p.n + ' &middot; ' + esc(p.tag) + '</span>' +
+      '<span class="t-title">' + esc(p.title) + (p.n === latest ? '<span class="badge">Latest</span>' : '') + '</span>' +
+      '<span class="t-desc">' + esc(p.desc) + '</span></div></a>';
+  }
+  function render() {
+    var items = PROJECTS.filter(function (p) { return current === 'All' || p.tag === current; });
+    listEl.className = view === 'list' ? 'list' : 'tiles';
+    listEl.innerHTML = items.length ? items.map(view === 'list' ? rowHtml : tileHtml).join('') : '<p class="empty">Nothing here yet.</p>';
+    countEl.textContent = items.length + (items.length === 1 ? ' project' : ' projects');
+    Array.prototype.forEach.call(chipsEl.children, function (b) { b.setAttribute('aria-pressed', String(b.textContent === current)); });
+    Array.prototype.forEach.call(viewsEl.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === view)); });
+    hidePeek();
+  }
+  tags.forEach(function (t) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = t;
+    b.addEventListener('click', function () { current = t; render(); });
+    chipsEl.appendChild(b);
+  });
+  Array.prototype.forEach.call(viewsEl.children, function (b) {
+    b.addEventListener('click', function () { view = b.dataset.view; render(); });
+  });
+
+  /* ---------- Art that follows the pointer over a row ---------- */
+  var peek = $('peek');
+  var peekPos = { x: 0, y: 0, tx: 0, ty: 0, rot: 0 };
+  var peekOn = false;
+  function hidePeek() { peekOn = false; peek.classList.remove('show'); }
+  if (fine) {
+    listEl.addEventListener('mouseover', function (e) {
+      var row = e.target.closest ? e.target.closest('.row') : null;
+      if (!row || view !== 'list') return;
+      peek.innerHTML = art(Number(row.dataset.n));
+      if (!peekOn) { peekPos.x = peekPos.tx; peekPos.y = peekPos.ty; }
+      peekOn = true;
+      peek.classList.add('show');
+    });
+    listEl.addEventListener('mouseleave', hidePeek);
+    listEl.addEventListener('mouseout', function (e) {
+      if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('.row')) hidePeek();
+    });
+  }
+
+  /* ---------- Ring cursor ---------- */
+  var cur = $('cursor'), fol = $('follower');
+  var mouse = { x: -100, y: -100, fx: -100, fy: -100 };
+  if (fine) {
+    window.addEventListener('mousemove', function (e) {
+      mouse.x = e.clientX; mouse.y = e.clientY;
+      cur.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+      root.classList.add('has-mouse');
+      peekPos.tx = Math.min(window.innerWidth - 320, e.clientX + 28);
+      peekPos.ty = Math.max(8, Math.min(window.innerHeight - 220, e.clientY - 100));
+    }, { passive: true });
+    document.addEventListener('mouseover', function (e) {
+      fol.classList.toggle('big', !!(e.target.closest && e.target.closest('a, button')));
+    });
+  }
+
+  /* ---------- Hero tile board (canvas) ---------- */
+  var cv = $('board'), ctx = cv.getContext('2d');
+  var COLORS = ['#8b1a35', '#c4425f', '#1a1814', '#d9667f'];
+  var cell = 44, size = 36, cols = 1, rows = 1, ox = 0, oy = 0, dpr = 1, W = 0, H = 0;
+  var en = new Float32Array(1), ci = new Uint8Array(1);
+  var boardVisible = true, lastX = null, lastY = null;
+  function resizeBoard() {
+    var rect = cv.getBoundingClientRect();
+    W = Math.max(1, rect.width); H = Math.max(1, rect.height);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cell = W < 420 ? 34 : 44; size = cell - 8;
+    cols = Math.max(1, Math.floor((W - 16) / cell));
+    rows = Math.max(1, Math.floor((H - 16) / cell));
+    ox = (W - (cols * cell - 8)) / 2; oy = (H - (rows * cell - 8)) / 2;
+    if (en.length !== cols * rows) { en = new Float32Array(cols * rows); ci = new Uint8Array(cols * rows); }
+  }
+  function lightCell(c, r, e) {
+    if (c < 0 || r < 0 || c >= cols || r >= rows) return;
+    var k = r * cols + c;
+    if (en[k] < 0.5) ci[k] = Math.floor(Math.random() * COLORS.length);
+    if (e > en[k]) en[k] = e;
+  }
+  function lightAt(x, y, spread) {
+    var c = Math.floor((x - ox) / cell), r = Math.floor((y - oy) / cell);
+    lightCell(c, r, 1);
+    if (spread) { lightCell(c - 1, r, .35); lightCell(c + 1, r, .35); lightCell(c, r - 1, .35); lightCell(c, r + 1, .35); }
+  }
+  var cap = $('boardCap');
+  cv.addEventListener('pointermove', function (e) {
+    cap.classList.add('gone');
+    var rect = cv.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+    var x0 = lastX === null ? x : lastX, y0 = lastY === null ? y : lastY;
+    var steps = Math.max(1, Math.ceil(Math.hypot(x - x0, y - y0) / (cell * 0.5)));
+    for (var s = 1; s <= steps; s++) lightAt(x0 + (x - x0) * s / steps, y0 + (y - y0) * s / steps, false);
+    lastX = x; lastY = y;
+  });
+  cv.addEventListener('pointerleave', function () { lastX = lastY = null; });
+  cv.addEventListener('pointerdown', function (e) {
+    cap.classList.add('gone');
+    var rect = cv.getBoundingClientRect();
+    lightAt(e.clientX - rect.left, e.clientY - rect.top, true);
+  });
+  function drawBoard() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var k = r * cols + c, x = ox + c * cell, y = oy + r * cell, e = en[k];
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(26,24,20,0.07)';
+        ctx.fillRect(x, y, size, size);
+        if (e > 0.01) {
+          var col = COLORS[ci[k]];
+          ctx.shadowColor = col; ctx.shadowBlur = 16 * e * dpr;
+          ctx.globalAlpha = Math.min(1, e * 1.15);
+          ctx.fillStyle = col;
+          ctx.fillRect(x, y, size, size);
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+    ctx.shadowBlur = 0;
+  }
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (entries) { boardVisible = entries[0].isIntersecting; }).observe($('boardWrap'));
+  }
+  resizeBoard();
+  if (window.ResizeObserver) new ResizeObserver(resizeBoard).observe($('boardWrap')); else window.addEventListener('resize', resizeBoard);
+
+  /* ---------- One animation loop ---------- */
+  var t0 = performance.now(), lastT = t0, lastDrift = -1;
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    if (fine) {
+      mouse.fx += (mouse.x - mouse.fx) * 0.18; mouse.fy += (mouse.y - mouse.fy) * 0.18;
+      fol.style.transform = 'translate(' + mouse.fx + 'px,' + mouse.fy + 'px)';
+      if (peekOn) {
+        peekPos.x += (peekPos.tx - peekPos.x) * 0.16; peekPos.y += (peekPos.ty - peekPos.y) * 0.16;
+        var vx = peekPos.tx - peekPos.x;
+        peekPos.rot += (Math.max(-8, Math.min(8, vx * 0.05)) - peekPos.rot) * 0.2;
+        peek.style.transform = 'translate(' + peekPos.x + 'px,' + peekPos.y + 'px) rotate(' + peekPos.rot.toFixed(2) + 'deg)';
+      }
+    }
+    if (boardVisible && !document.hidden) {
+      if (!reduce) {
+        var t = (now - t0) / 1000;
+        var fx = 0.5 + 0.42 * Math.sin(t * 0.31) * Math.cos(t * 0.13 + 1);
+        var fy = 0.5 + 0.42 * Math.sin(t * 0.21 + 2) * Math.cos(t * 0.33);
+        var c = Math.min(cols - 1, Math.max(0, Math.round(fx * (cols - 1))));
+        var r = Math.min(rows - 1, Math.max(0, Math.round(fy * (rows - 1))));
+        var key = r * cols + c;
+        if (key !== lastDrift) { lastDrift = key; lightCell(c, r, 1); lightCell(c + 1, r, .3); lightCell(c, r + 1, .3); }
+      }
+      var decay = Math.exp(-dt / 1.1);
+      for (var i = 0; i < en.length; i++) { var v = en[i] * decay; en[i] = v < 0.004 ? 0 : v; }
+      drawBoard();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- Fade in on scroll ---------- */
+  var fades = document.querySelectorAll('.fade-up');
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en2) { if (en2.isIntersecting) { en2.target.classList.add('visible'); io.unobserve(en2.target); } });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
+    Array.prototype.forEach.call(fades, function (el) { io.observe(el); });
+  } else {
+    Array.prototype.forEach.call(fades, function (el) { el.classList.add('visible'); });
+  }
+
+  render();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
