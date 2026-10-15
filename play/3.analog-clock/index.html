@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Pulse Clock</title>
+<style>
+:root{--a:#00e5ff;--b:#ff2fd6;--ink:#eaf6ff}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{overflow:hidden;background:#0b0d14;color:var(--ink);font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;padding:env(safe-area-inset-top) 1rem env(safe-area-inset-bottom)}
+.blob{position:fixed;width:60vmax;height:60vmax;border-radius:50%;filter:blur(90px);opacity:.28;z-index:-1;transition:background 1s;animation:drift 22s ease-in-out infinite alternate}
+.blob.one{background:var(--a);left:-20vmax;top:-20vmax}
+.blob.two{background:var(--b);right:-20vmax;bottom:-20vmax;animation-delay:-11s}
+@keyframes drift{to{transform:translate(12vmax,8vmax) scale(1.2)}}
+canvas{cursor:pointer;touch-action:manipulation}
+.digital{font:300 clamp(2rem,9vw,3.4rem)/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-shadow:0 0 24px var(--a);text-align:center}
+.digital small{font-size:.45em;color:var(--b);text-shadow:0 0 14px var(--b)}
+.date{opacity:.6;margin-top:.5rem;font-size:.95rem;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+.bar{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+select,button{font:inherit;font-size:.85rem;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:.5rem 1rem;cursor:pointer;backdrop-filter:blur(8px)}
+select option{color:#111}
+button:hover,select:hover{border-color:var(--a)}
+:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.place{text-align:center;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;color:var(--a);margin-bottom:.5rem}
+.pick{position:relative}
+.pick input{font:inherit;font-size:.85rem;width:min(78vw,260px);color:var(--ink);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:.5rem 1rem;backdrop-filter:blur(8px)}
+.pick input::placeholder{color:var(--ink);opacity:.5}
+.list{position:absolute;bottom:calc(100% + 6px);left:0;right:0;max-height:240px;overflow:auto;background:rgba(14,17,26,.96);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:.3rem;display:none;z-index:5;text-align:left}
+.list.open{display:block}
+.list div{padding:.45rem .7rem;border-radius:10px;cursor:pointer;font-size:.88rem;display:flex;justify-content:space-between;gap:.8rem}
+.list div span{opacity:.5;font-size:.78rem}
+.list div:hover,.list div.on{background:rgba(255,255,255,.1)}
+</style>
+</head>
+<body>
+<div class="blob one"></div><div class="blob two"></div>
+<canvas id="cv" role="img" aria-label="Analog clock"></canvas>
+<div>
+  <div class="digital" id="dig"></div>
+  <div class="date" id="date"></div>
+  <div class="place" id="place"></div>
+</div>
+<div class="bar">
+  <div class="pick">
+    <div class="list" id="list" role="listbox"></div>
+    <input id="q" type="search" placeholder="Search city or country…" autocomplete="off" aria-label="Search city or country">
+  </div>
+  <button id="pal" type="button">Theme</button>
+  <button id="fs" type="button">Fullscreen</button>
+</div>
+<script src="cities.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const palettes = [
+  {a:'#00e5ff', b:'#ff2fd6', ink:'#eaf6ff'},   // neon
+  {a:'#7cff9b', b:'#9b6bff', ink:'#eefff3'},   // aurora
+  {a:'#ff9a3c', b:'#ff3c6e', ink:'#fff3e8'},   // sunset
+  {a:'#ffffff', b:'#8a8fa3', ink:'#ffffff'}    // mono
+];
+let pi = 0, size = 0, dpr = 1;
+// City data lives in cities.js (works offline)
+const CITIES = CITY_DATA.c.split('\n').map(r => { const [city, country, z] = r.split('|'); return {city, country, zone: CITY_DATA.z[+z]}; });
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const DEVICE = {city:'My device', country:'Local time', zone:''};
+let cur = DEVICE;
+try {
+  pi = (+localStorage.getItem('pulse-pal') || 0) % palettes.length;
+  const saved = JSON.parse(localStorage.getItem('pulse-place') || 'null');
+  if (saved && (saved.zone === '' || CITIES.some(c => c.zone === saved.zone))) cur = saved;
+} catch {}
+function applyPal() {
+  const p = palettes[pi], r = document.documentElement.style;
+  r.setProperty('--a', p.a); r.setProperty('--b', p.b); r.setProperty('--ink', p.ink);
+  try { localStorage.setItem('pulse-pal', pi); } catch {}
+}
+applyPal();
+const nextPal = () => { pi = (pi + 1) % palettes.length; applyPal(); };
+$('pal').onclick = nextPal; cv.onclick = nextPal;
+$('fs').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+
+let fmt, dfmt;
+function setZone() {
+  const timeZone = cur.zone || undefined;
+  fmt = new Intl.DateTimeFormat('en-GB', {timeZone, hour:'numeric', minute:'numeric', second:'numeric', hour12:false});
+  dfmt = new Intl.DateTimeFormat('en-GB', {timeZone, weekday:'long', day:'numeric', month:'long'});
+  $('place').textContent = cur.zone ? `${cur.city} · ${cur.country}` : 'Your device time';
+  try { localStorage.setItem('pulse-place', JSON.stringify(cur)); } catch {}
+  $('dig').dataset.t = '';
+}
+setZone();
+
+// city / country search
+const q = $('q'), list = $('list');
+let shown = [], hi = -1;
+function render() {
+  const t = norm(q.value.trim());
+  shown = t ? CITIES.filter(c => norm(c.city).includes(t) || norm(c.country).includes(t)).sort((a, b) => (norm(b.city).startsWith(t) - norm(a.city).startsWith(t)) || (norm(b.country) === t) - (norm(a.country) === t)) : [DEVICE, ...CITIES];
+  if (t && 'my device'.includes(t)) shown.unshift(DEVICE);
+  shown = shown.slice(0, 50); hi = shown.length ? 0 : -1;
+  list.innerHTML = shown.length
+    ? shown.map((c, i) => `<div role="option" data-i="${i}" class="${i === hi ? 'on' : ''}">${c.city}<span>${c.country}</span></div>`).join('')
+    : '<div style="opacity:.6">No match</div>';
+  list.classList.add('open');
+}
+function choose(c) {
+  if (!c) return;
+  cur = c; setZone(); q.value = ''; q.placeholder = c.zone ? `${c.city}, ${c.country}` : 'Search city or country…';
+  list.classList.remove('open'); q.blur();
+}
+q.addEventListener('input', render);
+q.addEventListener('focus', render);
+q.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); hi = (hi + (e.key === 'ArrowDown' ? 1 : -1) + shown.length) % shown.length;
+    [...list.children].forEach((n, i) => n.classList.toggle('on', i === hi));
+    list.children[hi]?.scrollIntoView({block: 'nearest'});
+  } else if (e.key === 'Enter') choose(shown[hi]);
+  else if (e.key === 'Escape') { list.classList.remove('open'); q.blur(); }
+});
+list.addEventListener('mousedown', e => { const n = e.target.closest('[data-i]'); if (n) { e.preventDefault(); choose(shown[+n.dataset.i]); } });
+q.addEventListener('blur', () => list.classList.remove('open'));
+if (cur.zone) q.placeholder = `${cur.city}, ${cur.country}`;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  size = Math.min(innerWidth * .92, innerHeight * .6, 520);
+  cv.width = cv.height = size * dpr;
+  cv.style.width = cv.style.height = size + 'px';
+}
+addEventListener('resize', resize); resize();
+
+const rad = deg => (deg - 90) * Math.PI / 180;
+function hand(len, w, ang, color, glow) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.shadowColor = glow; ctx.shadowBlur = 18;
+  ctx.beginPath();
+  ctx.moveTo(-len * .12 * Math.cos(rad(ang)), -len * .12 * Math.sin(rad(ang)));
+  ctx.lineTo(len * Math.cos(rad(ang)), len * Math.sin(rad(ang)));
+  ctx.stroke(); ctx.restore();
+}
+
+function frame() {
+  const d = new Date();
+  const p = Object.fromEntries(fmt.formatToParts(d).filter(x => x.type !== 'literal').map(x => [x.type, +x.value]));
+  const s = p.second + d.getMilliseconds() / 1000;
+  const m = p.minute + s / 60;
+  const h = (p.hour % 12) + m / 60;
+  const {a, b, ink} = palettes[pi];
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, size, size);
+  ctx.translate(size / 2, size / 2);
+  const R = size * .46;
+
+  // soft face
+  const g = ctx.createRadialGradient(0, 0, R * .1, 0, 0, R);
+  g.addColorStop(0, 'rgba(255,255,255,.07)'); g.addColorStop(1, 'rgba(255,255,255,.01)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R * 1.02, 0, 7); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(0, 0, R * .62, 0, 7); ctx.stroke();
+
+  // 60 ticks — a comet trail lights up behind the second hand
+  for (let i = 0; i < 60; i++) {
+    const age = (s - i + 60) % 60;
+    const lit = Math.max(0, 1 - age / 22);
+    const major = i % 5 === 0;
+    const len = major ? R * .11 : R * .055;
+    const ang = rad(i * 6);
+    ctx.save();
+    ctx.strokeStyle = lit > 0 ? a : (major ? b : ink);
+    ctx.globalAlpha = lit > 0 ? .25 + .75 * lit : (major ? .8 : .22);
+    ctx.lineWidth = major ? 3.5 : 2; ctx.lineCap = 'round';
+    if (lit > 0) { ctx.shadowColor = a; ctx.shadowBlur = 16 * lit; }
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(ang) * (R - len), Math.sin(ang) * (R - len));
+    ctx.lineTo(Math.cos(ang) * R, Math.sin(ang) * R);
+    ctx.stroke(); ctx.restore();
+  }
+
+  // numerals
+  ctx.fillStyle = ink; ctx.globalAlpha = .85;
+  ctx.font = `600 ${size * .05}px system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let n = 1; n <= 12; n++) {
+    const ang = rad(n * 30);
+    ctx.fillText(n, Math.cos(ang) * R * .75, Math.sin(ang) * R * .75);
+  }
+  ctx.globalAlpha = 1;
+
+  // hands
+  hand(R * .46, size * .016, h * 30, ink, ink);
+  hand(R * .68, size * .011, m * 6, ink, ink);
+  hand(R * .88, size * .005, s * 6, a, a);
+
+  // second-hand tip orb
+  const ta = rad(s * 6);
+  ctx.save(); ctx.fillStyle = b; ctx.shadowColor = b; ctx.shadowBlur = 22;
+  ctx.beginPath(); ctx.arc(Math.cos(ta) * R * .88, Math.sin(ta) * R * .88, size * .016, 0, 7); ctx.fill(); ctx.restore();
+
+  // center cap
+  ctx.save(); ctx.fillStyle = a; ctx.shadowColor = a; ctx.shadowBlur = 18;
+  ctx.beginPath(); ctx.arc(0, 0, size * .022, 0, 7); ctx.fill(); ctx.restore();
+
+  const pad = n => String(n).padStart(2, '0');
+  const txt = `${pad(p.hour % 24)}:${pad(p.minute)}`;
+  if ($('dig').dataset.t !== txt + p.second) {
+    $('dig').dataset.t = txt + p.second;
+    $('dig').innerHTML = `${txt}<small>:${pad(p.second)}</small>`;
+    $('date').textContent = dfmt.format(d);
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
